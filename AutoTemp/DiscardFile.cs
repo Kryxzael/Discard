@@ -93,30 +93,41 @@ namespace Discard
             }
             else if (Source is DirectoryInfo d)
             {
-                recursiveSetAttr(d.FullName);
+                recursiveSetAttr(d);
                 d.Delete(true);
             }
 
 
-            /* local */ void recursiveSetAttr(string path)
+            /* local */ void recursiveSetAttr(DirectoryInfo dir)
             {
-                //Update file flags
-                foreach (string i in Directory.GetFiles(path))
+                try
                 {
-                    try
-                    {
-                        File.SetAttributes(path, File.GetAttributes(path) & ~FileAttributes.ReadOnly);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("[ERROR] Failed to update attribute flag for " + path);
-                    }
+                    dir.Attributes = FileAttributes.Normal;
                 }
-
-                //Recursive search subdirectories
-                foreach (string i in Directory.GetDirectories(path))
+                catch (Exception)
                 {
-                    recursiveSetAttr(i);
+                    Console.Error.WriteLine("recursiveSetAttr: Could not update flag of directory " + dir.Name);
+                }
+                
+
+                foreach (FileSystemInfo i in dir.GetFileSystemInfos())
+                {
+                    if (i is DirectoryInfo d)
+                    {
+                        recursiveSetAttr(d);
+                    }
+                    else if (i is FileInfo fi)
+                    {
+                        try
+                        {
+                            fi.Attributes = FileAttributes.Normal;
+                        }
+                        catch (Exception)
+                        {
+                            Console.Error.WriteLine("recursiveSetAttr: Could not update flag of file " + i.Name);
+                        }
+                        
+                    }
                 }
             }
         }
