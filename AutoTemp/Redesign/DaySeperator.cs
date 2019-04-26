@@ -41,11 +41,11 @@ namespace Discard.Redesign
             //TODO: Get an actual dynamic texture going here
             if (DaysLeft == 1)
             {
-                pbDays.Image = null;
+                pbDays.Image = Properties.Resources.Day;
             }
             else
             {
-                pbDays.Image = null; 
+                pbDays.Image = Properties.Resources.Days; 
             }
         }
 
@@ -63,13 +63,20 @@ namespace Discard.Redesign
 
         private static Bitmap GetBitmapForDigit(int digit, bool zeroIsNull)
         {
-            if (digit > 9 || digit < 0)
+            switch (digit)
             {
-                throw new ArgumentOutOfRangeException("More than one digit in passed number");
+                case 0: return zeroIsNull ? null : Properties.Resources.N0;
+                case 1: return Properties.Resources.N1;
+                case 2: return Properties.Resources.N2;
+                case 3: return Properties.Resources.N3;
+                case 4: return Properties.Resources.N4;
+                case 5: return Properties.Resources.N5;
+                case 6: return Properties.Resources.N6;
+                case 7: return Properties.Resources.N7;
+                case 8: return Properties.Resources.N8;
+                case 9: return Properties.Resources.N9;
+                default: throw new ArgumentOutOfRangeException("More than one digit in passed number");
             }
-
-            //TODO: Implement this
-            return null;
         }
     }
 }

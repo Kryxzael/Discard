@@ -41,7 +41,7 @@ namespace Discard
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Application.Run(new DiscardManager());
+            Application.Run(new Redesign.CreateFileDialog());
             return;
             Microsoft.Win32.SystemEvents.SessionSwitch += (s, e) =>
             {
