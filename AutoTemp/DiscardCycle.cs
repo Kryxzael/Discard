@@ -9,7 +9,7 @@ using System.Windows.Forms;
 namespace Discard
 {
     /// <summary>
-    /// Represents a 
+    /// Represents a cleanup operation done daily by discard
     /// </summary>
     public class DiscardCycle
     {
@@ -64,7 +64,7 @@ namespace Discard
             }
 
             //Shows the dialog for the files that are to be deleted
-            IEnumerable<DiscardFile> filesToPrompt = _.DiscardFiles.Where(i => i.Expired);
+            IEnumerable<DiscardFile> filesToPrompt = _.DiscardFiles.Where(i => i.Expired && !i.NoWarning);
 
             if (filesToPrompt.Any())
             {
@@ -78,7 +78,7 @@ namespace Discard
                 }
 
                 //Delete files
-                foreach (DiscardFile i in dia.GetFilesForDeletion())
+                foreach (DiscardFile i in dia.GetFilesForDeletion().Union(_.DiscardFiles.Where(i => i.Expired && i.NoWarning)))
                 {
                     try
                     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Discard
@@ -24,16 +25,8 @@ namespace Discard
         {
             get
             {
-                string[] split = Source.Name.Split(' ');
-
-                //The name's first part ends with a 'd' and starts with a number if we trim the 'd'
-                if (TryParseNumberWithD(split.First(), out int r))
-                {
-                    return string.Join(" ", split.Skip(1).ToArray());
-                }
-
-                //No valid marker found
-                return Source.Name;
+                DeconstructFileName(Source.Name, out int _, out bool _, out string name);
+                return name;
             }
         }
 
@@ -44,24 +37,38 @@ namespace Discard
         {
             get
             {
-                string[] split = Source.Name.Split(' ');
-
-                if (TryParseNumberWithD(split.First(), out int r))
-                {
-                    return r;
-                }
-
-                return Program.MAX_DAYS;
+                DeconstructFileName(Source.Name, out int days, out bool _, out string _);
+                return days;
             }
             set
             {
                 if (Source is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + CreateNumberWithD(value) + " " + RealName);
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
                 }
                 else if (Source is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + CreateNumberWithD(value) + " " + RealName);
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
+                }
+            }
+        }
+
+        public bool NoWarning
+        {
+            get
+            {
+                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _);
+                return nowarn;
+            }
+            set
+            {
+                if (Source is DirectoryInfo d)
+                {
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
+                }
+                else if (Source is FileInfo f)
+                {
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
                 }
             }
         }
@@ -159,20 +166,70 @@ namespace Discard
             }
         }
 
-        private bool TryParseNumberWithD(string toParse, out int result)
+        public static void DeconstructFileName(string input, out int days, out bool noWarn, out string name)
         {
-            if (!toParse.EndsWith("d"))
+            string prefix = input.Split(' ').First();
+
+            /* 
+             * Set the name out variable
+             */
+
+            //There is no name (Only prefix)
+            if (input.Split(' ').Count() == 1)
             {
-                result = -1;
-                return false;
+                name = "";
             }
 
-            return int.TryParse(toParse.TrimEnd('d'), out result);
+            //There is a name (Here a prefix is assumed to exist. If there isn't, it's taken care of later)
+            else
+            {
+                name = string.Join(" ", input.Split(' ').Skip(1));
+            }
+
+            /*
+             * Parse the prefix
+             */
+
+            const string REGEX_NUMBER_D = @"-?\d+d";
+
+            //Format is '7d foo'
+            if (Regex.IsMatch(prefix, $"^{REGEX_NUMBER_D}$"))
+            {
+                days = int.Parse(Regex.Match(prefix, @"-?\d+").Value);
+                noWarn = false;
+            }
+
+            //Format is '7d! foo' or '!7d foo'
+            else if (Regex.IsMatch(prefix, $"^{REGEX_NUMBER_D}!$") || Regex.IsMatch(prefix, $"^!{REGEX_NUMBER_D}$"))
+            {
+                days = int.Parse(Regex.Match(prefix, @"-?\d+").Value);
+                noWarn = true;
+            }
+
+            //Format is '! foo' or '!foo'
+            else if (input.StartsWith("!"))
+            {
+                name = input.TrimStart(' ', '!');
+                days = 1;
+                noWarn = true;
+            }
+
+            //No valid prefix
+            else
+            {
+                name = input;
+                days = Program.MAX_DAYS;
+                noWarn = false;
+            }
         }
 
-        private string CreateNumberWithD(int number)
+        public static string ConstructFileName(int days, bool noWarn, string name)
         {
-            return number.ToString() + "d";
+            return string.Format("{0}{1}d {2}",
+                noWarn ? "!" : "",
+                days.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")),
+                name
+            );
         }
     }
 }
