@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Shell;
+using ThumbnailGenerator;
 
 namespace Discard
 {
@@ -96,20 +97,9 @@ namespace Discard
         {
             try
             {
-                if (file is FileInfo f)
-                {
-                    using (ShellFile shFile = ShellFile.FromFilePath(f.FullName))
-                        return shFile.Thumbnail.SmallBitmap;
-                }
-                else if (file is DirectoryInfo d)
-                {
-                    using (ShellFileSystemFolder shFile = ShellFileSystemFolder.FromFolderPath(d.FullName))
-                        return shFile.Thumbnail.SmallBitmap;
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                const int THUMB_SIZE = 64;
+                return WindowsThumbnailProvider.GetThumbnail(
+                   file.FullName, THUMB_SIZE, THUMB_SIZE, ThumbnailOptions.None);
             }
             catch (Exception)
             {

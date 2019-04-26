@@ -41,6 +41,8 @@ namespace Discard
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            Application.Run(new DiscardManager());
+            return;
             Microsoft.Win32.SystemEvents.SessionSwitch += (s, e) =>
             {
                 if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionUnlock)
