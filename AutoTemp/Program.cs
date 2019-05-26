@@ -12,6 +12,8 @@ namespace Discard
     {
         public const char DIR_SEPERATOR_CHAR = '>';
 
+        private static DiscardNotifyIcon _icon;
+
 #if DEBUG
         public const bool BYPASS_DAY_CHECK = true;
 #else
@@ -53,12 +55,13 @@ namespace Discard
             {
                 if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionUnlock)
                 {
+                    _icon.UpdateIcon();
                     RunOnAwake();
                 }
             };
 
-
-            new DiscardNotifyIcon().Show();
+            _icon = new DiscardNotifyIcon();
+            _icon.Show();
             RunOnAwake();
             Application.Run();
         }
@@ -79,6 +82,8 @@ namespace Discard
 
             //Writes the flag file
             WriteFlagFile();
+
+            _icon.UpdateIcon();
         }
 
         /// <summary>
