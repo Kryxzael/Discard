@@ -61,36 +61,6 @@ namespace Discard
             DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
 
             /*
-             * Add untracked files
-             */
-            IEnumerable<DiscardFile> untrackedFiles = cycle.DiscardFiles
-                .Where(i => i.Untracked);
-
-            if (untrackedFiles.Any())
-            {
-                ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
-                {
-                    Font = _boldFont,
-                    ForeColor = Color.DodgerBlue,
-                    ToolTipText = "Files without tracking labels"
-                };
-
-                _context.Items.Add(header);
-
-                foreach (DiscardFile i in untrackedFiles)
-                {
-                    if (untrackedFiles.Count() >= 8)
-                    {
-                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
-                    }
-                    else
-                    {
-                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
-                    }
-                }
-            }
-
-            /*
              * Add tracked files
              */
             IEnumerable<IGrouping<int, DiscardFile>> trackedFiles = cycle.DiscardFiles
@@ -111,15 +81,13 @@ namespace Discard
                 {
                     case int i when (i <= 0):
                         header.ForeColor = Color.Red;
+                        header.BackColor = Color.Pink;
                         break;
                     case 1:
-                        header.ForeColor = Color.Orange;
-                        break;
-                    case 2:
-                        header.ForeColor = Color.Goldenrod;
+                        header.BackColor = Color.Wheat;
                         break;
                     case int i when (i > Properties.Settings.Default.DefaultDays):
-                        header.ForeColor = Color.DarkGray;
+                        header.ForeColor = Color.FromArgb(75, 75, 75);
                         break;
                 }
 
@@ -137,6 +105,37 @@ namespace Discard
                     }
                 }
             }
+
+            /*
+            * Add untracked files
+            */
+            IEnumerable<DiscardFile> untrackedFiles = cycle.DiscardFiles
+                .Where(i => i.Untracked);
+
+            if (untrackedFiles.Any())
+            {
+                ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
+                {
+                    Font = _boldFont,
+                    ForeColor = Color.DodgerBlue,
+                    BackColor = Color.LightSkyBlue
+                };
+
+                _context.Items.Add(header);
+
+                foreach (DiscardFile i in untrackedFiles)
+                {
+                    if (untrackedFiles.Count() >= 8)
+                    {
+                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
+                    }
+                    else
+                    {
+                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
+                    }
+                }
+            }
+
 
 
             /*
@@ -183,32 +182,36 @@ namespace Discard
              * Colorization
              */
 
+            //Based on extended timers
+            if (file.DaysLeft > Properties.Settings.Default.DefaultDays)
+            {
+                fileButton.ForeColor = Color.FromArgb(75, 75, 75);
+                fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has an extended timer";
+            }
+
+            //Based on modification time
+            switch ((DateTime.Now - file.Source.LastWriteTime).Days)
+            {
+                case 0:
+                    fileButton.ForeColor = Color.Red;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited yesterday";
+                    break;
+                case 1:
+                    fileButton.ForeColor = Color.Orange;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited recently";
+                    break;
+                case 2:
+                    fileButton.ForeColor = Color.Goldenrod;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited recently";
+                    break;
+            }
+
             //Based on tracking
             if (file.Untracked)
             {
                 fileButton.ForeColor = Color.DodgerBlue;
+                fileButton.BackColor = Color.LightSkyBlue;
                 fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " is untracked";
-            }
-
-            //Based on time left
-            switch (file.DaysLeft)
-            {
-                case int n when (n <= 0):
-                    fileButton.ForeColor = Color.Red;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has expired";
-                    break;
-                case 1:
-                    fileButton.ForeColor = Color.Orange;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " will be deleted soon";
-                    break;
-                case 2:
-                    fileButton.ForeColor = Color.Goldenrod;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " will be deleted soon";
-                    break;
-                case int n when (n > Properties.Settings.Default.DefaultDays):
-                    fileButton.ForeColor = Color.DarkGray;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has an extended timer";
-                    break;
             }
 
             //Based on emptyness
@@ -218,6 +221,15 @@ namespace Discard
                 fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " is empty and can safely be deleted";
             }
 
+            //Backcolor
+            if (file.DaysLeft <= 0)
+            {
+                fileButton.BackColor = Color.Pink;
+            }
+            else if (file.DaysLeft == 1 && !file.Untracked)
+            {
+                fileButton.BackColor = Color.Wheat;
+            }
 
             /*
              * Sub-buttons
