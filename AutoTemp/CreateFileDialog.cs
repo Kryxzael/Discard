@@ -71,7 +71,7 @@ namespace Discard
                 //Apply days left
                 if (rdoTimeDefault.Checked)
                 {
-                    newFile.DaysLeft = Program.MAX_DAYS;
+                    newFile.DaysLeft = Properties.Settings.Default.DefaultDays;
                 }
                 else if (rdoTimeTomorrow.Checked)
                 {

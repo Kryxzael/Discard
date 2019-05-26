@@ -218,7 +218,7 @@ namespace Discard
             else
             {
                 name = input;
-                days = Program.MAX_DAYS;
+                days = Properties.Settings.Default.DefaultDays;
                 noWarn = false;
             }
         }

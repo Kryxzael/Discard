@@ -13,10 +13,8 @@ namespace Discard
         public static string FLAG_FILE => Path.Combine(GetDiscardDirectories().First(), ".FLAG");
 
 #if DEBUG
-        public const int MAX_DAYS = 2;
         public const bool BYPASS_DAY_CHECK = true;
 #else
-        public const int MAX_DAYS = 7;
         public const bool BYPASS_DAY_CHECK = false;
 #endif
 
@@ -29,8 +27,7 @@ namespace Discard
 #if DEBUG
             yield return "C:\\users\\kryxzael\\desktop\\discard2";
 #else
-            yield return Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\discard";
-            yield return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads";
+            return Properties.Settings.Default.DiscardDirs?.Cast<string>() ?? new string[0] { };
 #endif
 
         }
@@ -40,6 +37,12 @@ namespace Discard
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            if (!GetDiscardDirectories().Any())
+            {
+                MessageBox.Show("No discard directories configured. Manual entries to Properties.Settings required. This will be fixed in future releases", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             Microsoft.Win32.SystemEvents.SessionSwitch += (s, e) =>
             {
@@ -84,28 +87,7 @@ namespace Discard
                 return false;
             }
 
-            try
-            {
-                //Finds file
-                FileInfo flagFile = new FileInfo(FLAG_FILE);
-
-                if (!flagFile.Exists)
-                {
-                    //Flag file does not exits, we can assume the app has not been run
-                    return false;
-                }
-                else
-                {
-                    //True if the last write time is greater that the current date at 00:00:00
-                    return flagFile.LastWriteTime.Date >= DateTime.Now.Date;
-                }
-            }
-            catch (Exception)
-            {
-                //Could not read file. Assume to has been read
-                Console.WriteLine("[ERROR] Exception thrown when reading flag file. Is the file locked?");
-                return true;
-            }
+            return DateTime.Now.Date == Properties.Settings.Default.LastDiscardCycle.Date;
         }
 
         /// <summary>
@@ -114,17 +96,8 @@ namespace Discard
         /// <returns></returns>
         private static void WriteFlagFile()
         {
-            try
-            {
-                File.Delete(FLAG_FILE); //Deletes existing file
-                File.WriteAllBytes(FLAG_FILE, new byte[0]); //Writes a new empty file
-                File.SetAttributes(FLAG_FILE, File.GetAttributes(FLAG_FILE) | FileAttributes.Hidden); //Makes the file hidden
-            }
-            catch (Exception)
-            {
-                //File could not be written to
-                Console.WriteLine("[ERROR] Flag file could not be updated, Is the file locked?");
-            }
+            Properties.Settings.Default.LastDiscardCycle = DateTime.Now.Date;
+            Properties.Settings.Default.Save();
         }
     }
 }
