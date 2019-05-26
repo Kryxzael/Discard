@@ -104,7 +104,8 @@ namespace Discard
                 {
                     try
                     {
-                        i.Postpone();
+                        /* I have decided against actually updating the file labels. Instead just let it go negative */
+                        //i.Postpone();
                     }
                     catch (Exception ex)
                     {

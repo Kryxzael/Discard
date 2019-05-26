@@ -60,15 +60,12 @@ namespace Discard
             //Fetches discard files
             DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
 
+            /*
+             * Add untracked files
+             */
             IEnumerable<DiscardFile> untrackedFiles = cycle.DiscardFiles
                 .Where(i => i.Untracked);
 
-            IEnumerable<IGrouping<int, DiscardFile>> trackedFiles = cycle.DiscardFiles
-                .Where(i => !i.Untracked)
-                .GroupBy(i => i.DaysLeft)
-                .OrderBy(i => i.Key);
-
-            //Add untracked files
             if (untrackedFiles.Any())
             {
                 ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
@@ -92,10 +89,14 @@ namespace Discard
                 }
             }
 
+            /*
+             * Add tracked files
+             */
+            IEnumerable<IGrouping<int, DiscardFile>> trackedFiles = cycle.DiscardFiles
+                .Where(i => !i.Untracked)
+                .GroupBy(i => i.DaysLeft)
+                .OrderBy(i => i.Key);
 
-            
-
-            //Add files to context menu along with headers
             foreach (IGrouping<int, DiscardFile> group in trackedFiles)
             {
                 //Day header
@@ -283,6 +284,12 @@ namespace Discard
                         new ToolStripMenuItem("60 days", null, (s, e) => file.DaysLeft = 60),
                         new ToolStripMenuItem("999 days", null, (s, e) => file.DaysLeft = 999),
                     });
+
+            fileButton.DropDown.Items.Add(new ToolStripMenuItem("Warn before deletion", null, (s, e) =>
+            {
+                file.NoWarning = !file.NoWarning;
+            })
+            { Checked = !file.NoWarning });
 
             return fileButton;
         }
