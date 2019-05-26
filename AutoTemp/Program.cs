@@ -49,6 +49,8 @@ namespace Discard
                 }
             };
 
+
+            new DiscardNotifyIcon().Show();
             RunOnAwake();
             Application.Run();
         }

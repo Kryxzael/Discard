@@ -33,6 +33,14 @@ namespace Discard
 
         }
 
+        /// <summary>
+        /// Creates a new discard cycle containing the information it would contain were it to run
+        /// </summary>
+        /// <param name="where"></param>
+        public static DiscardCycle DryRun(IEnumerable<DirectoryInfo> where)
+        {
+            return new DiscardCycle(where);
+        }
 
         /// <summary>
         /// Runs a discard cycle now on the given directory
