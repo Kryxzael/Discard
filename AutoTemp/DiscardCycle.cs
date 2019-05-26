@@ -27,9 +27,10 @@ namespace Discard
         {
             //don't ask how this works please
             DiscardFiles = path.Select(o => o.GetFileSystemInfos()
-            .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden))
-            .Select(i => new DiscardFile(i)))
-            .SelectMany(i => i).ToList();
+                .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden))
+                .Select(i => new DiscardFile(i)))
+                .SelectMany(i => i)
+            .ToList();
 
         }
 

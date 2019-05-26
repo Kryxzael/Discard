@@ -48,9 +48,10 @@ namespace Discard.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection DiscardDirs {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DiscardDirs {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["DiscardDirs"]));
+                return ((string)(this["DiscardDirs"]));
             }
             set {
                 this["DiscardDirs"] = value;

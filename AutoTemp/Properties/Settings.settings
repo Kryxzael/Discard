@@ -8,7 +8,7 @@
     <Setting Name="LastDiscardCycle" Type="System.DateTime" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="DiscardDirs" Type="System.Collections.Specialized.StringCollection" Scope="User">
+    <Setting Name="DiscardDirs" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>

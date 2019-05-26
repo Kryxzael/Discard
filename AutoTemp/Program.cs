@@ -10,7 +10,7 @@ namespace Discard
 {
     public static class Program
     {
-        public static string FLAG_FILE => Path.Combine(GetDiscardDirectories().First(), ".FLAG");
+        public const char DIR_SEPERATOR_CHAR = '>';
 
 #if DEBUG
         public const bool BYPASS_DAY_CHECK = true;
@@ -25,11 +25,22 @@ namespace Discard
         public static IEnumerable<string> GetDiscardDirectories()
         {
 #if DEBUG
-            yield return "C:\\users\\kryxzael\\desktop\\discard2";
+            //yield return "C:\\users\\kryxzael\\desktop\\discard2";
+            return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
 #else
-            return Properties.Settings.Default.DiscardDirs?.Cast<string>() ?? new string[0] { };
+            return Properties.Settings.Default.DiscardDirs.Split('>');
 #endif
 
+        }
+
+        /// <summary>
+        /// Sets the directories the discard program will enumerate over
+        /// </summary>
+        /// <param name="directories"></param>
+        public static void SetDiscardDirectories(IEnumerable<string> directories)
+        {
+            Properties.Settings.Default.DiscardDirs = string.Join(">", directories);
+            Properties.Settings.Default.Save();
         }
 
         [STAThread]
@@ -37,12 +48,6 @@ namespace Discard
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            if (!GetDiscardDirectories().Any())
-            {
-                MessageBox.Show("No discard directories configured. Manual entries to Properties.Settings required. This will be fixed in future releases", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
 
             Microsoft.Win32.SystemEvents.SessionSwitch += (s, e) =>
             {

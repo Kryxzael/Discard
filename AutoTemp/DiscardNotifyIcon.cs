@@ -73,11 +73,11 @@ namespace Discard
              * The other stuff
              */
             _context.Items.Add("-");
-            _context.Items.Add("&Settings...", null, (s, e) => MessageBox.Show("NYI"));
-            _context.Items.Add("&Create...", null, (s, e) => new CreateFileDialog().ShowDialog());
+            _context.Items.Add("&Settings...", null, (s, e) => new Settings().ShowDialog());
+            _context.Items.Add("&Create...", null, (s, e) => new CreateFileDialog().ShowDialog()).Enabled = Program.GetDiscardDirectories().Any();
 
             //Open button
-            _context.Items.Add("&Open...", null);
+            _context.Items.Add("&Open...", null).Enabled = Program.GetDiscardDirectories().Any();
             {
                 ToolStripMenuItem last = (ToolStripMenuItem)_context.Items[_context.Items.Count - 1];
                 foreach (string i in Program.GetDiscardDirectories())
