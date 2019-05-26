@@ -30,7 +30,7 @@ namespace Discard
             //yield return "C:\\users\\kryxzael\\desktop\\discard2";
             return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
 #else
-            return Properties.Settings.Default.DiscardDirs.Split('>');
+            return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
 #endif
 
         }

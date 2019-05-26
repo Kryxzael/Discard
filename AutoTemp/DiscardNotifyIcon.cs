@@ -37,7 +37,7 @@ namespace Discard
         {
             _icon = new NotifyIcon
             {
-                Icon = Properties.Resources.DiscardWarning
+                Icon = Properties.Resources.DiscardError
             };
             _icon.MouseUp += OnClick;
         }
@@ -56,118 +56,78 @@ namespace Discard
              */
 
             //Fetches discard files
-            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new System.IO.DirectoryInfo(i)));
-            IEnumerable<IGrouping<int, DiscardFile>> files = cycle.DiscardFiles.GroupBy(i => i.DaysLeft);
+            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
+
+            IEnumerable<DiscardFile> untrackedFiles = cycle.DiscardFiles
+                .Where(i => i.Untracked);
+
+            IEnumerable<IGrouping<int, DiscardFile>> trackedFiles = cycle.DiscardFiles
+                .Where(i => !i.Untracked)
+                .GroupBy(i => i.DaysLeft)
+                .OrderBy(i => i.Key);
+
+            //Add untracked files
+            if (untrackedFiles.Any())
+            {
+                ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
+                {
+                    Font = _boldFont,
+                    ForeColor = Color.DodgerBlue
+                };
+
+                _context.Items.Add(header);
+
+                foreach (DiscardFile i in untrackedFiles)
+                {
+                    if (untrackedFiles.Count() >= 8)
+                    {
+                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
+                    }
+                    else
+                    {
+                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
+                    }
+                }
+            }
+
+
+            
 
             //Add files to context menu along with headers
-            foreach (IGrouping<int, DiscardFile> group in files)
+            foreach (IGrouping<int, DiscardFile> group in trackedFiles)
             {
                 //Day header
+                _context.Items.Add("-");
+                ToolStripMenuItem header = new ToolStripMenuItem(group.Key + (Math.Abs(group.Key) == 1 ? " day" : " days"))
                 {
-                    _context.Items.Add("-");
-                    ToolStripMenuItem header = new ToolStripMenuItem(group.Key + (Math.Abs(group.Key) == 1 ? " day" : " days"))
-                    {
-                        Font = _boldFont,
-                    };
+                    Font = _boldFont,
+                };
 
-                    switch (group.Key)
-                    {
-                        case int i when (i <= 0):
-                            header.ForeColor = Color.Red;
-                            break;
-                        case 1:
-                            header.ForeColor = Color.Orange;
-                            break;
-                        case 2:
-                            header.ForeColor = Color.Goldenrod;
-                            break;
-                    }
-
-                    _context.Items.Add(header);
+                switch (group.Key)
+                {
+                    case int i when (i <= 0):
+                        header.ForeColor = Color.Red;
+                        break;
+                    case 1:
+                        header.ForeColor = Color.Orange;
+                        break;
+                    case 2:
+                        header.ForeColor = Color.Goldenrod;
+                        break;
                 }
-                
-                //Add files in the current group
+
+                _context.Items.Add(header);
+
                 foreach (DiscardFile i in group)
                 {
-                    //Add the file button
-                    ToolStripMenuItem fileButton = (ToolStripMenuItem)_context.Items.Add(
-                        text: i.RealName,
-                        image: DiscardDialogFull.GetIconFromFileOrFolder(i.Source),
-                        onClick: (s, e) => Process.Start(i.Source.FullName)
-                    );
-    
-                    //Add the subbuttons
-                    fileButton.DropDown.Items.Add("Open", null, (s, e) =>
+                    if (group.Count() >= 8)
                     {
-                        Process.Start(i.Source.FullName);
-                    });
-                    fileButton.DropDown.Items.Add("Open file location", null, (s, e) => 
+                        header.DropDownItems.Add(CreateContextMenuForDiscardFile(i));
+                    }
+                    else
                     {
-                        if (i.Source is FileInfo f)
-                        {
-                            Process.Start(f.DirectoryName);
-                        }
-                        else if (i.Source is DirectoryInfo d)
-                        {
-                            Process.Start(d.Parent.FullName);
-                        }
-                    });
-                    fileButton.DropDown.Items.Add("Archive...", null, (s, e) => 
-                    {
-                        //Shows the save file dialog
-                        SaveFileDialog dia = new SaveFileDialog()
-                        {
-                            Title = "Archive " + i.RealName
-                        };
-
-                        //Add extension filters
-                        if (i.Source is FileInfo f)
-                        {
-                            dia.Filter = $"Current extension (*{f.Extension})|*{f.Extension}|Any extension (*.*)|*";
-                            dia.FileName = i.RealName;
-                        }
-                        else if (i.Source is DirectoryInfo d)
-                        {
-                            dia.Filter = "File Directory|*";
-                            dia.FileName = i.RealName;
-                        }
-
-                        //Shows the dialog
-                        if (dia.ShowDialog() == DialogResult.Cancel)
-                        {
-                            //If the user hit cancel, continue to the next file in the selection
-                            return;
-                        }
-
-                        try
-                        {
-                            i.Archive(dia.FileName);
-                        }
-                        catch (Exception)
-                        {
-                            MessageBox.Show("Could not archive file, Please try again, or in another location", "Archive failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    });
-                    fileButton.DropDown.Items.Add("Delete now...", null, (s, e) => 
-                    {
-                        if (MessageBox.Show("Are you sure you want to permanently delete this file?", "Delete now", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
-                        {
-                            i.Delete();
-                        }
-                    });
-                    fileButton.DropDown.Items.Add("-");
-                    (fileButton.DropDown.Items.Add("Set days left...") as ToolStripMenuItem).DropDown.Items.AddRange(new ToolStripItem[]{
-                        new ToolStripMenuItem("1 day", null, (s, e) => i.DaysLeft = 1),
-                        new ToolStripMenuItem("3 days", null, (s, e) => i.DaysLeft = 3),
-                        new ToolStripMenuItem("5 days", null, (s, e) => i.DaysLeft = 5),
-                        new ToolStripMenuItem("7 days", null, (s, e) => i.DaysLeft = 7),
-                        new ToolStripMenuItem("14 days", null, (s, e) => i.DaysLeft = 14),
-                        new ToolStripMenuItem("30 days", null, (s, e) => i.DaysLeft = 30),
-                        new ToolStripMenuItem("60 days", null, (s, e) => i.DaysLeft = 60),
-                        new ToolStripMenuItem("999 days", null, (s, e) => i.DaysLeft = 999),
-                    });
-
-                    fileButton.DropDown.Items.Add(new ToolStripMenuItem("Warn before deletion", null, (s, e) => i.NoWarning = !i.NoWarning) { Checked = !i.NoWarning });
+                        _context.Items.Add(CreateContextMenuForDiscardFile(i));
+                    }
                 }
             }
 
@@ -189,8 +149,140 @@ namespace Discard
                 }
             }
 
+            _context.Items.Add("-");
+            _context.Items.Add("Exit", null, (s, e) => Application.Exit());
 
             return _context;
+        }
+
+        /// <summary>
+        /// Creates a ToolStripMenuItem from a discard file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private ToolStripMenuItem CreateContextMenuForDiscardFile(DiscardFile file)
+        {
+            //Create the button for the file
+            ToolStripMenuItem fileButton = new ToolStripMenuItem()
+            {
+                Text = file.RealName,
+                Image = DiscardDialogFull.GetIconFromFileOrFolder(file.Source),
+                Font = Control.DefaultFont
+            };
+
+            fileButton.Click += (s, e) => Process.Start(file.Source.FullName);
+
+            /*
+             * Colorization
+             */
+
+            //Based on tracking
+            if (file.Untracked)
+            {
+                fileButton.ForeColor = Color.DodgerBlue;
+            }
+
+            //Based on time left
+            switch (file.DaysLeft)
+            {
+                case int n when (n <= 0):
+                    fileButton.ForeColor = Color.Red;
+                    break;
+                case 1:
+                    fileButton.ForeColor = Color.Orange;
+                    break;
+                case 2:
+                    fileButton.ForeColor = Color.Goldenrod;
+                    break;
+            }
+
+            //Based on emptyness
+            if ((file.Source is FileInfo f && f.Length == 0) || (file.Source is DirectoryInfo d && !d.EnumerateFiles().Any()))
+            {
+                fileButton.ForeColor = Color.Green;
+            }
+
+
+            /*
+             * Sub-buttons
+             */
+            fileButton.DropDown.Items.Add("Open", null, (s, e) =>
+            {
+                Process.Start(file.Source.FullName);
+            });
+
+            fileButton.DropDown.Items.Add("Open file location", null, (s, e) =>
+            {
+                if (file.Source is FileInfo fi)
+                {
+                    Process.Start(fi.DirectoryName);
+                }
+                else if (file.Source is DirectoryInfo di)
+                {
+                    Process.Start(di.Parent.FullName);
+                }
+            });
+
+            fileButton.DropDown.Items.Add("Archive...", null, (s, e) =>
+            {
+                //Copied from the discard dialog
+
+                //Shows the save file dialog
+                SaveFileDialog dia = new SaveFileDialog()
+                {
+                    Title = "Archive " + file.RealName
+                };
+
+                //Add extension filters
+                if (file.Source is FileInfo fi)
+                {
+                    dia.Filter = $"Current extension (*{fi.Extension})|*{fi.Extension}|Any extension (*.*)|*";
+                    dia.FileName = file.RealName;
+                }
+                else if (file.Source is DirectoryInfo)
+                {
+                    dia.Filter = "File Directory|*";
+                    dia.FileName = file.RealName;
+                }
+
+                //Shows the dialog
+                if (dia.ShowDialog() == DialogResult.Cancel)
+                {
+                    //If the user hit cancel, continue to the next file in the selection
+                    return;
+                }
+
+                try
+                {
+                    file.Archive(dia.FileName);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Could not archive file, Please try again, or in another location", "Archive failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            });
+
+            fileButton.DropDown.Items.Add("Delete now...", null, (s, e) =>
+            {
+                if (MessageBox.Show("Are you sure you want to permanently delete this file?", "Delete now", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                {
+                    file.Delete();
+                }
+            });
+
+            fileButton.DropDown.Items.Add("-");
+            (fileButton.DropDown.Items.Add("Set days left...") as ToolStripMenuItem).DropDown.Items.AddRange(new ToolStripItem[]{
+                        new ToolStripMenuItem("1 day", null, (s, e) => file.DaysLeft = 1),
+                        new ToolStripMenuItem("3 days", null, (s, e) => file.DaysLeft = 3),
+                        new ToolStripMenuItem("5 days", null, (s, e) => file.DaysLeft = 5),
+                        new ToolStripMenuItem("7 days", null, (s, e) => file.DaysLeft = 7),
+                        new ToolStripMenuItem("14 days", null, (s, e) => file.DaysLeft = 14),
+                        new ToolStripMenuItem("30 days", null, (s, e) => file.DaysLeft = 30),
+                        new ToolStripMenuItem("60 days", null, (s, e) => file.DaysLeft = 60),
+                        new ToolStripMenuItem("999 days", null, (s, e) => file.DaysLeft = 999),
+                    });
+
+            return fileButton;
         }
 
         /// <summary>
@@ -251,7 +343,15 @@ namespace Discard
             //Left click -> start main discard directory
             if (e.Button == MouseButtons.Left)
             {
-                Process.Start(Program.GetDiscardDirectories().First());
+                if (Program.GetDiscardDirectories().Any())
+                {
+                    Process.Start(Program.GetDiscardDirectories().First());
+                }
+                else
+                {
+                    new Settings().ShowDialog();
+                }
+                
             }
 
             //Right click -> show menu

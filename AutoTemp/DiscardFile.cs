@@ -25,8 +25,17 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string name);
+                DeconstructFileName(Source.Name, out int _, out bool _, out string name, out bool _);
                 return name;
+            }
+        }
+
+        public bool Untracked
+        {
+            get
+            {
+                DeconstructFileName(Source.Name, out int _, out bool _, out string _, out bool untracked);
+                return untracked;
             }
         }
 
@@ -37,7 +46,7 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int days, out bool _, out string _);
+                DeconstructFileName(Source.Name, out int days, out bool _, out string _, out bool _);
                 return days;
             }
             set
@@ -57,7 +66,7 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _);
+                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _, out bool _);
                 return nowarn;
             }
             set
@@ -166,9 +175,10 @@ namespace Discard
             }
         }
 
-        public static void DeconstructFileName(string input, out int days, out bool noWarn, out string name)
+        public static void DeconstructFileName(string input, out int days, out bool noWarn, out string name, out bool untracked)
         {
             string prefix = input.Split(' ').First();
+            untracked = false;
 
             /* 
              * Set the name out variable
@@ -212,6 +222,7 @@ namespace Discard
                 name = input.TrimStart(' ', '!');
                 days = 1;
                 noWarn = true;
+                untracked = true;
             }
 
             //No valid prefix
@@ -220,6 +231,7 @@ namespace Discard
                 name = input;
                 days = Properties.Settings.Default.DefaultDays;
                 noWarn = false;
+                untracked = true;
             }
         }
 
