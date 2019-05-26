@@ -9,13 +9,24 @@ using System.Windows.Forms;
 
 namespace Discard
 {
+    /// <summary>
+    /// Handles the task bar icon
+    /// </summary>
     public class DiscardNotifyIcon : IDisposable
     {
+        /// <summary>
+        /// The underlaying task bar icon
+        /// </summary>
         private readonly NotifyIcon _icon;
+
+        /// <summary>
+        /// The menu that is shown when the icon is right clicked
+        /// </summary>
         private readonly ContextMenuStrip _context = new ContextMenuStrip();
 
-
-
+        /// <summary>
+        /// Creates a new taskbar icon
+        /// </summary>
         public DiscardNotifyIcon()
         {
             _icon = new NotifyIcon
@@ -25,13 +36,24 @@ namespace Discard
             _icon.MouseUp += OnClick;
         }
 
+        /// <summary>
+        /// Regenerates the menu
+        /// </summary>
+        /// <returns></returns>
         private ContextMenuStrip GenerateContext()
         {
+            //Clear existing items
             _context.Items.Clear();
-            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new System.IO.DirectoryInfo(i)));
 
-            //Files
+            /*
+             * FILES
+             */
+
+            //Fetches discard files
+            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new System.IO.DirectoryInfo(i)));
             IEnumerable<IGrouping<int, DiscardFile>> files = cycle.DiscardFiles.GroupBy(i => i.DaysLeft);
+
+            //Add files to context menu along with headers
             foreach (IGrouping<int, DiscardFile> group in files)
             {
                 _context.Items.Add("-");
@@ -47,10 +69,14 @@ namespace Discard
             }
 
 
-            //Other
+            /*
+             * The other stuff
+             */
             _context.Items.Add("-");
             _context.Items.Add("&Settings...", null, (s, e) => MessageBox.Show("NYI"));
-            _context.Items.Add("&Create...", null, (s, e) => MessageBox.Show("NYI"));
+            _context.Items.Add("&Create...", null, (s, e) => new CreateFileDialog().ShowDialog());
+
+            //Open button
             _context.Items.Add("&Open...", null);
             {
                 ToolStripMenuItem last = (ToolStripMenuItem)_context.Items[_context.Items.Count - 1];
@@ -64,32 +90,53 @@ namespace Discard
             return _context;
         }
 
+        /// <summary>
+        /// Shows the taskbar icon
+        /// </summary>
         public void Show()
         {
             _icon.Visible = true;
         }
 
+        /// <summary>
+        /// Hides the discard icon
+        /// </summary>
         public void Hide()
         {
             _icon.Visible = false;
         }
 
+        /// <summary>
+        /// Simulates a click on the button
+        /// </summary>
         public void Click()
         {
             OnClick(_icon, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
         }
 
+        /// <summary>
+        /// Sets the icon of the taskbar button
+        /// </summary>
+        /// <param name="icon"></param>
         public void SetIcon(Icon icon)
         {
             _icon.Icon = icon;
         }
 
+        /// <summary>
+        /// Handles clicks
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnClick(object sender, MouseEventArgs e)
         {
+            //Left click -> start main discard directory
             if (e.Button == MouseButtons.Left)
             {
                 Process.Start(Program.GetDiscardDirectories().First());
             }
+
+            //Right click -> show menu
             else if (e.Button == MouseButtons.Right)
             {
                 GenerateContext().Show(Control.MousePosition);
@@ -97,6 +144,9 @@ namespace Discard
             
         }
 
+        /// <summary>
+        /// Disposes the IDisposables of this class
+        /// </summary>
         public void Dispose()
         {
             _icon.Dispose();
