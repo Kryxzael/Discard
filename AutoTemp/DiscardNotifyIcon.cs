@@ -40,6 +40,8 @@ namespace Discard
                 Icon = Properties.Resources.DiscardError
             };
             _icon.MouseUp += OnClick;
+            _icon.ContextMenuStrip = _context;
+            _context.Opening += (s, e) => GenerateContext();
         }
 
         /// <summary>
@@ -352,14 +354,7 @@ namespace Discard
                     new Settings().ShowDialog();
                 }
                 
-            }
-
-            //Right click -> show menu
-            else if (e.Button == MouseButtons.Right)
-            {
-                GenerateContext().Show(Control.MousePosition);
-            }
-            
+            }            
         }
 
         /// <summary>
