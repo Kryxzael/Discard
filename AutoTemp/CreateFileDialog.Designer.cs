@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CreateFileDialog));
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -87,22 +88,22 @@
             // rdoTypeDirectory
             // 
             this.rdoTypeDirectory.AutoSize = true;
+            this.rdoTypeDirectory.Checked = true;
             this.rdoTypeDirectory.Location = new System.Drawing.Point(6, 42);
             this.rdoTypeDirectory.Name = "rdoTypeDirectory";
             this.rdoTypeDirectory.Size = new System.Drawing.Size(67, 17);
             this.rdoTypeDirectory.TabIndex = 1;
+            this.rdoTypeDirectory.TabStop = true;
             this.rdoTypeDirectory.Text = "Directory";
             this.rdoTypeDirectory.UseVisualStyleBackColor = true;
             // 
             // rdoTypeFile
             // 
             this.rdoTypeFile.AutoSize = true;
-            this.rdoTypeFile.Checked = true;
             this.rdoTypeFile.Location = new System.Drawing.Point(6, 19);
             this.rdoTypeFile.Name = "rdoTypeFile";
             this.rdoTypeFile.Size = new System.Drawing.Size(41, 17);
             this.rdoTypeFile.TabIndex = 0;
-            this.rdoTypeFile.TabStop = true;
             this.rdoTypeFile.Text = "File";
             this.rdoTypeFile.UseVisualStyleBackColor = true;
             // 
@@ -165,7 +166,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(144, 40);
+            this.label2.Location = new System.Drawing.Point(144, 42);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 8;
@@ -198,7 +199,7 @@
             // rdoTimeAfter
             // 
             this.rdoTimeAfter.AutoSize = true;
-            this.rdoTimeAfter.Location = new System.Drawing.Point(6, 42);
+            this.rdoTimeAfter.Location = new System.Drawing.Point(6, 40);
             this.rdoTimeAfter.Name = "rdoTimeAfter";
             this.rdoTimeAfter.Size = new System.Drawing.Size(56, 17);
             this.rdoTimeAfter.TabIndex = 4;
@@ -261,7 +262,11 @@
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.btnCancel);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "CreateFileDialog";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Create Discard File or Folder";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

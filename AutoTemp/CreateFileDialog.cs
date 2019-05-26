@@ -71,7 +71,7 @@ namespace Discard
                 //Apply days left
                 if (rdoTimeDefault.Checked)
                 {
-                    newFile.DaysLeft = Properties.Settings.Default.DefaultDays;
+                    //Leave untracked
                 }
                 else if (rdoTimeTomorrow.Checked)
                 {

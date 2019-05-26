@@ -114,6 +114,8 @@ namespace Discard
 
             if (untrackedFiles.Any())
             {
+                _context.Items.Add("-");
+
                 ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
                 {
                     Font = _boldFont,
@@ -171,7 +173,7 @@ namespace Discard
             //Create the button for the file
             ToolStripMenuItem fileButton = new ToolStripMenuItem()
             {
-                Text = file.RealName,
+                Text = file.RealName + (file.Source is DirectoryInfo ? "\\" : ""),
                 Image = DiscardDialogFull.GetIconFromFileOrFolder(file.Source),
                 Font = Control.DefaultFont
             };
