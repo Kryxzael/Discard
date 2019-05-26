@@ -71,7 +71,8 @@ namespace Discard
                 ToolStripMenuItem header = new ToolStripMenuItem("Untracked")
                 {
                     Font = _boldFont,
-                    ForeColor = Color.DodgerBlue
+                    ForeColor = Color.DodgerBlue,
+                    ToolTipText = "Files without tracking labels"
                 };
 
                 _context.Items.Add(header);
@@ -116,6 +117,9 @@ namespace Discard
                         break;
                     case 2:
                         header.ForeColor = Color.Goldenrod;
+                        break;
+                    case int i when (i > Properties.Settings.Default.DefaultDays):
+                        header.ForeColor = Color.DarkGray;
                         break;
                 }
 
@@ -183,6 +187,7 @@ namespace Discard
             if (file.Untracked)
             {
                 fileButton.ForeColor = Color.DodgerBlue;
+                fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " is untracked";
             }
 
             //Based on time left
@@ -190,12 +195,19 @@ namespace Discard
             {
                 case int n when (n <= 0):
                     fileButton.ForeColor = Color.Red;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has expired";
                     break;
                 case 1:
                     fileButton.ForeColor = Color.Orange;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " will be deleted soon";
                     break;
                 case 2:
                     fileButton.ForeColor = Color.Goldenrod;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " will be deleted soon";
+                    break;
+                case int n when (n > Properties.Settings.Default.DefaultDays):
+                    fileButton.ForeColor = Color.DarkGray;
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has an extended timer";
                     break;
             }
 
@@ -203,6 +215,7 @@ namespace Discard
             if ((file.Source is FileInfo f && f.Length == 0) || (file.Source is DirectoryInfo d && !d.EnumerateFiles().Any()))
             {
                 fileButton.ForeColor = Color.Green;
+                fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " is empty and can safely be deleted";
             }
 
 
@@ -332,12 +345,15 @@ namespace Discard
             {
                 case int n when n <= 0:
                     _icon.Icon = Properties.Resources.DiscardError;
+                    _icon.Text = "One or more files are overdue for deletion";
                     break;
                 case 1:
                     _icon.Icon = Properties.Resources.DiscardWarning;
+                    _icon.Text = "One or more files will be deleted tomorrow";
                     break;
                 default:
                     _icon.Icon = Properties.Resources.DiscardOK;
+                    _icon.Text = "Discard";
                     break;
             }
         }
