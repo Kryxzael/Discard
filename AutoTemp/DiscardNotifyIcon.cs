@@ -174,7 +174,7 @@ namespace Discard
             ToolStripMenuItem fileButton = new ToolStripMenuItem()
             {
                 Text = file.RealName + (file.Source is DirectoryInfo ? "\\" : ""),
-                Image = DiscardDialogFull.GetIconFromFileOrFolder(file.Source),
+                Image = ThumbnailGenerator.WindowsThumbnailProvider.GetThumbnail(file.Source.FullName, 16, 16, ThumbnailGenerator.ThumbnailOptions.None),
                 Font = Control.DefaultFont
             };
 

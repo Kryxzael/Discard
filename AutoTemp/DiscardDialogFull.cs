@@ -81,7 +81,7 @@ namespace Discard
 
             foreach (DiscardFile i in Files)
             {
-                imgList.Images.Add(GetIconFromFileOrFolder(i.Source));
+                imgList.Images.Add(ThumbnailGenerator.WindowsThumbnailProvider.GetThumbnail(i.Source.FullName, 32, 32, ThumbnailGenerator.ThumbnailOptions.None));
             }
 
             lstvwDelete.SmallImageList = lstvwPostpone.SmallImageList = imgList;
@@ -92,6 +92,7 @@ namespace Discard
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
+        [Obsolete("Use ThumbailProvider")]
         public static Bitmap GetIconFromFileOrFolder(FileSystemInfo file)
         {
             try
