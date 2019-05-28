@@ -196,15 +196,15 @@ namespace Discard
             {
                 case 0:
                     fileButton.ForeColor = Color.Red;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited yesterday";
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited less than 24 hours ago";
                     break;
                 case 1:
                     fileButton.ForeColor = Color.Orange;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited recently";
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited less than 48 hours ago";
                     break;
                 case 2:
                     fileButton.ForeColor = Color.Goldenrod;
-                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited recently";
+                    fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " was edited less than 72 hours ago";
                     break;
             }
 
