@@ -217,7 +217,7 @@ namespace Discard
             }
 
             //Based on emptyness
-            if ((file.Source is FileInfo f && f.Length == 0) || (file.Source is DirectoryInfo d && !d.EnumerateFiles().Any()))
+            if ((file.Source is FileInfo f && f.Length == 0) || (file.Source is DirectoryInfo d && !d.EnumerateFileSystemInfos().Any()))
             {
                 fileButton.ForeColor = Color.Green;
                 fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " is empty and can safely be deleted";
