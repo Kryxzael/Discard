@@ -19,22 +19,37 @@ namespace Discard
         public FileSystemInfo Source { get; }
 
         /// <summary>
-        /// Gets the name of the discard file without the preceding numbering
+        /// Gets the file that contains this discard file's counter
         /// </summary>
-        public string RealName
+        public FileSystemInfo CounterFile
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string name, out bool _);
-                return name;
+                if (Source.Extension == ".discard")
+                {
+                    return Source;
+                }
+
+                foreach (DiscardFile i in new DirectoryInfo(Path.GetDirectoryName(Source.FullName)).GetFiles().Select(i => new DiscardFile(i)))
+                {
+                    if (GetRealName(i.Source.Name).ToLower() == Source.Name.ToLower() + ".discard")
+                    {
+                        return i.Source;
+                    }                    
+                }
+
+                return Source;
             }
         }
 
+        /// <summary>
+        /// Has this file not been run through the system yet?
+        /// </summary>
         public bool Untracked
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string _, out bool untracked);
+                DeconstructFileName(CounterFile.Name, out int _, out bool _, out string _, out bool untracked);
                 return untracked;
             }
         }
@@ -46,22 +61,25 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int days, out bool _, out string _, out bool _);
+                DeconstructFileName(CounterFile.Name, out int days, out bool _, out string _, out bool _);
                 return days;
             }
             set
             {
-                if (Source is DirectoryInfo d)
+                if (CounterFile is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, GetRealName(CounterFile.Name)));
                 }
-                else if (Source is FileInfo f)
+                else if (CounterFile is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, GetRealName(CounterFile.Name)));
                 }
             }
         }
 
+        /// <summary>
+        /// Is this file a no-warn file
+        /// </summary>
         public bool NoWarning
         {
             get
@@ -71,15 +89,24 @@ namespace Discard
             }
             set
             {
-                if (Source is DirectoryInfo d)
+                if (CounterFile is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(Source.Name)));
                 }
-                else if (Source is FileInfo f)
+                else if (CounterFile is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(Source.Name)));
                 }
             }
+        }
+
+        /// <summary>
+        /// Does this file use an external counter system?
+        /// </summary>
+        public bool HasExternalCounter
+        {
+            get => throw new NotImplementedException(); //new FileInfo("NYI").Exists;
+            set => throw new NotImplementedException();
         }
 
         /// <summary>
@@ -242,6 +269,15 @@ namespace Discard
                 days.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")),
                 name
             );
+        }
+
+        /// <summary>
+        /// Gets the name portion of a discard file
+        /// </summary>
+        public static string GetRealName(string fileName)
+        {
+            DeconstructFileName(fileName, out int _, out bool _, out string name, out bool _);
+            return name;
         }
     }
 }

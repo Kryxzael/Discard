@@ -173,7 +173,7 @@ namespace Discard
             //Create the button for the file
             ToolStripMenuItem fileButton = new ToolStripMenuItem()
             {
-                Text = file.RealName + (file.Source is DirectoryInfo ? "\\" : ""),
+                Text = DiscardFile.GetRealName(file.Source.Name) + (file.Source is DirectoryInfo ? "\\" : ""),
                 Image = ThumbnailGenerator.WindowsThumbnailProvider.GetThumbnail(file.Source.FullName, 16, 16, ThumbnailGenerator.ThumbnailOptions.None),
                 Font = Control.DefaultFont
             };
@@ -260,19 +260,19 @@ namespace Discard
                 //Shows the save file dialog
                 SaveFileDialog dia = new SaveFileDialog()
                 {
-                    Title = "Archive " + file.RealName
+                    Title = "Archive " + DiscardFile.GetRealName(file.Source.Name)
                 };
 
                 //Add extension filters
                 if (file.Source is FileInfo fi)
                 {
                     dia.Filter = $"Current extension (*{fi.Extension})|*{fi.Extension}|Any extension (*.*)|*";
-                    dia.FileName = file.RealName;
+                    dia.FileName = DiscardFile.GetRealName(file.Source.Name);
                 }
                 else if (file.Source is DirectoryInfo)
                 {
                     dia.Filter = "File Directory|*";
-                    dia.FileName = file.RealName;
+                    dia.FileName = DiscardFile.GetRealName(file.Source.Name);
                 }
 
                 //Shows the dialog
