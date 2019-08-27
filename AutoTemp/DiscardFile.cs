@@ -19,81 +19,48 @@ namespace Discard
         public FileSystemInfo Source { get; }
 
         /// <summary>
+        /// Gets the tracker file for this discard file
+        /// </summary>
+        public TrackingFile Tracker { get; }
+
+        /// <summary>
         /// Gets the name of the discard file without the preceding numbering
         /// </summary>
-        public string RealName
-        {
-            get
-            {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string name, out bool _);
-                return name;
-            }
-        }
+        public string Name => Source.Name;
 
-        public bool Untracked
-        {
-            get
-            {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string _, out bool untracked);
-                return untracked;
-            }
-        }
+        /// <summary>
+        /// Does this discard file not have a tracker?
+        /// </summary>
+        public bool Untracked => !Tracker.Source.Exists;
+
+        /// <summary>
+        /// Has this file expired
+        /// </summary>
+        public bool Expired => Tracker.Expired;
 
         /// <summary>
         /// Days before deletion
         /// </summary>
         public int DaysLeft
         {
-            get
-            {
-                DeconstructFileName(Source.Name, out int days, out bool _, out string _, out bool _);
-                return days;
-            }
-            set
-            {
-                if (Source is DirectoryInfo d)
-                {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
-                }
-                else if (Source is FileInfo f)
-                {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
-                }
-            }
-        }
-
-        public bool NoWarning
-        {
-            get
-            {
-                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _, out bool _);
-                return nowarn;
-            }
-            set
-            {
-                if (Source is DirectoryInfo d)
-                {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
-                }
-                else if (Source is FileInfo f)
-                {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
-                }
-            }
+            get => Tracker.DaysLeft;
+            set => Tracker.DaysLeft = value;
         }
 
         /// <summary>
-        /// Has this file expired
+        /// Will this file be deleted without warning
         /// </summary>
-        public bool Expired
+        public bool NoWarning
         {
-            get => DaysLeft <= 0;
+            get => Tracker.NoWarning;
+            set => Tracker.NoWarning = value;
         }
 
         public DiscardFile(FileSystemInfo fileOrFolder)
         {
-            //Sets the source
+            //Sets the sources
             Source = fileOrFolder;
+            Tracker = new TrackingFile(new FileInfo(Source.FullName + ".discard"));
         }
 
         /// <summary>
@@ -173,75 +140,6 @@ namespace Discard
             {
                 DaysLeft = 1;
             }
-        }
-
-        public static void DeconstructFileName(string input, out int days, out bool noWarn, out string name, out bool untracked)
-        {
-            string prefix = input.Split(' ').First();
-            untracked = false;
-
-            /* 
-             * Set the name out variable
-             */
-
-            //There is no name (Only prefix)
-            if (input.Split(' ').Count() == 1)
-            {
-                name = "";
-            }
-
-            //There is a name (Here a prefix is assumed to exist. If there isn't, it's taken care of later)
-            else
-            {
-                name = string.Join(" ", input.Split(' ').Skip(1));
-            }
-
-            /*
-             * Parse the prefix
-             */
-
-            const string REGEX_NUMBER_D = @"-?\d+d";
-
-            //Format is '7d foo'
-            if (Regex.IsMatch(prefix, $"^{REGEX_NUMBER_D}$"))
-            {
-                days = int.Parse(Regex.Match(prefix, @"-?\d+").Value);
-                noWarn = false;
-            }
-
-            //Format is '7d! foo' or '!7d foo'
-            else if (Regex.IsMatch(prefix, $"^{REGEX_NUMBER_D}!$") || Regex.IsMatch(prefix, $"^!{REGEX_NUMBER_D}$"))
-            {
-                days = int.Parse(Regex.Match(prefix, @"-?\d+").Value);
-                noWarn = true;
-            }
-
-            //Format is '! foo' or '!foo'
-            else if (input.StartsWith("!"))
-            {
-                name = input.TrimStart(' ', '!');
-                days = 1;
-                noWarn = true;
-                untracked = true;
-            }
-
-            //No valid prefix
-            else
-            {
-                name = input;
-                days = Properties.Settings.Default.DefaultDays;
-                noWarn = false;
-                untracked = true;
-            }
-        }
-
-        public static string ConstructFileName(int days, bool noWarn, string name)
-        {
-            return string.Format("{0}{1}d {2}",
-                noWarn ? "!" : "",
-                days.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")),
-                name
-            );
         }
     }
 }

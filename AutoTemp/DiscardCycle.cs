@@ -27,7 +27,7 @@ namespace Discard
         {
             //don't ask how this works please
             DiscardFiles = path.Select(o => o.GetFileSystemInfos()
-                .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden))
+                .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden) && i.Extension != ".discard")
                 .Select(i => new DiscardFile(i)))
                 .SelectMany(i => i)
             .ToList();
@@ -95,7 +95,7 @@ namespace Discard
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("The file/folder " + i.RealName + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("The file/folder " + i.Name + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
 
@@ -109,7 +109,7 @@ namespace Discard
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("The file/folder " + i.RealName + " could not be updated. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("The file/folder " + i.Name + " could not be updated. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
 

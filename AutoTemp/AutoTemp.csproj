@@ -68,6 +68,7 @@
     </Compile>
     <Compile Include="DiscardFile.cs" />
     <Compile Include="DiscardNotifyIcon.cs" />
+    <Compile Include="FSWatcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -87,6 +88,7 @@
       <DependentUpon>Settings.cs</DependentUpon>
     </Compile>
     <Compile Include="ThumbnailProvider.cs" />
+    <Compile Include="TrackingFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -13,6 +13,7 @@ namespace Discard
         public const char DIR_SEPERATOR_CHAR = '>';
 
         private static DiscardNotifyIcon _icon;
+        private static FSWatcher _watcher;
 
 #if DEBUG
         public const bool BYPASS_DAY_CHECK = true;
@@ -43,6 +44,10 @@ namespace Discard
         {
             Properties.Settings.Default.DiscardDirs = string.Join(">", directories);
             Properties.Settings.Default.Save();
+
+            //Update FSWatcher
+            _watcher?.Dispose();
+            _watcher = new FSWatcher();
         }
 
         [STAThread]
@@ -62,6 +67,9 @@ namespace Discard
 
             _icon = new DiscardNotifyIcon();
             _icon.Show();
+
+            _watcher = new FSWatcher();
+
             RunOnAwake();
             Application.Run();
         }
