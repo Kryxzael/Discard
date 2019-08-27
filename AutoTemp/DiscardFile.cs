@@ -85,18 +85,18 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _, out bool _);
+                DeconstructFileName(CounterFile.Name, out int _, out bool nowarn, out string _, out bool _);
                 return nowarn;
             }
             set
             {
                 if (CounterFile is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(Source.Name)));
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(d.Name)));
                 }
                 else if (CounterFile is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(Source.Name)));
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(f.Name)));
                 }
             }
         }
@@ -216,12 +216,24 @@ namespace Discard
             try
             {
                 File.Create(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, Source.Name) + ".discard")).Close();
-                (Source as FileInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name)));
-                (Source as DirectoryInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name)));
+
+                (Source as FileInfo)?.MoveTo(
+                        Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name))
+                 );
+
+                (Source as DirectoryInfo)?.MoveTo(
+                    Path.Combine((Source as DirectoryInfo).Parent.FullName, GetRealName(Source.Name))
+                );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show("Unable to fully create counter file. This can mean that:\n\n* The counter file was created but the counter of the original file could not be removed\n* The counter file could not be created\n\nYou need to manualy fix this", "Creation error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //This is so stupid.
+                //So apparently, Windows throws an IOException if the target and dest. names are identical
+                //This also seems to ONLY happen with folders. Wat
+                if (ex.HResult == -2146232800) 
+                    return;
+
+                MessageBox.Show("Unable to fully create counter file. This can mean that:\n\n* The counter file was created but the counter of the original file could not be removed\n* The counter file could not be created\n\nYou need to manually fix this", "Creation error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

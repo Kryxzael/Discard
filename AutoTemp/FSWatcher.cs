@@ -49,8 +49,13 @@ namespace Discard
                          ) + ".discard"));
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                //Really hacky way to fix edge case scenario where the warning would trigger when merging files
+                //This may actually break stuff idk.
+                if (ex.HResult == -2147024894)
+                    return;
+
                 System.Windows.Forms.MessageBox.Show("Unable to rename the trailing counter file for former '" + e.OldName + "'. You need to rename it manually");
             }
         }
