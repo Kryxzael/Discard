@@ -74,6 +74,7 @@ namespace Discard
 
             //Shows the dialog for the files that are to be deleted
             IEnumerable<DiscardFile> filesToPrompt = _.DiscardFiles.Where(i => i.Expired && !i.NoWarning);
+            List<DiscardFile> filesForDeletion = _.DiscardFiles.Where(i => i.NoWarning && i.Expired).ToList();
 
             if (filesToPrompt.Any())
             {
@@ -86,18 +87,7 @@ namespace Discard
                     return false;
                 }
 
-                //Delete files
-                foreach (DiscardFile i in dia.GetFilesForDeletion().Union(_.DiscardFiles.Where(i => i.Expired && i.NoWarning)))
-                {
-                    try
-                    {
-                        i.Delete();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("The file/folder " + DiscardFile.GetRealName(i.Source.Name) + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                filesForDeletion.AddRange(dia.GetFilesForDeletion());
 
                 //Postpone files
                 foreach (DiscardFile i in dia.GetFilesForPostponement())
@@ -113,6 +103,19 @@ namespace Discard
                     }
                 }
 
+            }
+
+            //Delete files
+            foreach (DiscardFile i in filesForDeletion)
+            {
+                try
+                {
+                    i.Delete();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("The file/folder " + DiscardFile.GetRealName(i.Source.Name) + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
 
             IsRunning = false;
