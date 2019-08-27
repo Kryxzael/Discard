@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Discard
 {
@@ -220,7 +221,7 @@ namespace Discard
             }
             catch (Exception)
             {
-                Console.WriteLine("Unable to fully create counter file");
+                MessageBox.Show("Unable to fully create counter file. This can mean that:\n\n* The counter file was created but the counter of the original file could not be removed\n* The counter file could not be created\n\nYou need to manualy fix this", "Creation error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -242,8 +243,7 @@ namespace Discard
             }
             catch (Exception)
             {
-                Console.WriteLine("Unable to fully merge counter file");
-                throw;
+                MessageBox.Show("Unable to fully merge counter file. This can mean that:\n\n* The counter file still remains even though it's not in use\n* No action could take place\n\nYou need to manualy fix this", "Merging error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

@@ -51,7 +51,7 @@ namespace Discard
             }
             catch (Exception)
             {
-                Console.WriteLine("Unable to rename tracker file of former file '" + e.OldName + "'");
+                System.Windows.Forms.MessageBox.Show("Unable to rename the trailing counter file for former '" + e.OldName + "'. You need to rename it manually");
             }
         }
 
@@ -76,7 +76,7 @@ namespace Discard
             }
             catch (Exception)
             {
-                Console.WriteLine("Unable to delete trailing tracker file for " + e.Name);
+                System.Windows.Forms.MessageBox.Show("Unable to delete the trailing counter file for '" + e.Name + "'. You need to delete it manually");
             }
 
         }
