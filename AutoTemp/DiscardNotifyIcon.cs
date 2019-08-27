@@ -252,6 +252,23 @@ namespace Discard
                     Process.Start(di.Parent.FullName);
                 }
             });
+            fileButton.DropDown.Items.Add("-");
+
+            if (file.HasExternalCounter)
+            {
+                fileButton.DropDown.Items.Add("Merge external tracker file", null, (s, e) =>
+                {
+                    file.MergeCounterFile();
+                });
+            }
+            else
+            {
+                fileButton.DropDown.Items.Add("Create external tracker file", null, (s, e) =>
+                {
+                    file.CreateCounterFile();
+                });
+            }
+            
 
             fileButton.DropDown.Items.Add("Archive...", null, (s, e) =>
             {

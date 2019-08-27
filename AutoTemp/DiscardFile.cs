@@ -105,7 +105,7 @@ namespace Discard
         /// </summary>
         public bool HasExternalCounter
         {
-            get => throw new NotImplementedException(); //new FileInfo("NYI").Exists;
+            get => CounterFile != Source;
             set => throw new NotImplementedException();
         }
 
@@ -199,6 +199,51 @@ namespace Discard
             if (Expired)
             {
                 DaysLeft = 1;
+            }
+        }
+
+        /// <summary>
+        /// Creates a counter file of this discard file and transfers all the information from this file to that counter
+        /// </summary>
+        public void CreateCounterFile()
+        {
+            if (HasExternalCounter)
+            {
+                return;
+            }
+
+            try
+            {
+                File.Create(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, Source.Name) + ".discard")).Close();
+                (Source as FileInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name)));
+                (Source as DirectoryInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name)));
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Unable to fully create counter file");
+            }
+        }
+
+        public void MergeCounterFile()
+        {
+            if (!HasExternalCounter)
+            {
+                return;
+            }
+
+            try
+            {
+                FileInfo oldCounterFile = CounterFile as FileInfo;
+                (Source as FileInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, GetRealName(Source.Name))));
+                (Source as DirectoryInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, GetRealName(Source.Name))));
+
+                
+                oldCounterFile.Delete();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Unable to fully merge counter file");
+                throw;
             }
         }
 
