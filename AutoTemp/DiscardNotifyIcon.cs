@@ -58,7 +58,7 @@ namespace Discard
              */
 
             //Fetches discard files
-            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
+            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)), 0);
 
             /*
              * Add tracked files
@@ -367,7 +367,7 @@ namespace Discard
         /// </summary>
         public void UpdateIcon()
         {
-            switch (DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)))
+            switch (DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)), 0)
                 .DiscardFiles
                     .OrderBy(i => i.DaysLeft)
                     .FirstOrDefault()?
@@ -384,7 +384,11 @@ namespace Discard
                     break;
                 default:
                     _icon.Icon = Properties.Resources.DiscardOK;
+#if DEBUG
+                    _icon.Text = "Discard (Debug Mode)";
+#else
                     _icon.Text = "Discard";
+#endif
                     break;
             }
         }

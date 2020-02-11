@@ -19,11 +19,16 @@ namespace Discard
         public List<DiscardFile> DiscardFiles { get; }
 
         /// <summary>
+        /// Gets the amount of cycles (days since last cycle) this DiscardCycle will run
+        /// </summary>
+        public int Cycles { get; }
+
+        /// <summary>
         /// Is the application currently showing a dialog window
         /// </summary>
         private static bool IsRunning { get; set; }
 
-        private DiscardCycle(IEnumerable<DirectoryInfo> path)
+        private DiscardCycle(IEnumerable<DirectoryInfo> path, int cycles)
         {
             //don't ask how this works please
             DiscardFiles = path.Select(o => o.GetFileSystemInfos()
@@ -32,21 +37,22 @@ namespace Discard
                 .SelectMany(i => i)
             .ToList();
 
+            Cycles = cycles;
         }
 
         /// <summary>
         /// Creates a new discard cycle containing the information it would contain were it to run
         /// </summary>
         /// <param name="where"></param>
-        public static DiscardCycle DryRun(IEnumerable<DirectoryInfo> where)
+        public static DiscardCycle DryRun(IEnumerable<DirectoryInfo> where, int cycles)
         {
-            return new DiscardCycle(where);
+            return new DiscardCycle(where, cycles);
         }
 
         /// <summary>
         /// Runs a discard cycle now on the given directory
         /// </summary>
-        public static bool RunNow(IEnumerable<DirectoryInfo> where)
+        public static bool RunNow(IEnumerable<DirectoryInfo> where, int cycles)
         {
             //Do not show dialog if the application is already running
             if (IsRunning)
@@ -57,14 +63,14 @@ namespace Discard
 
             IsRunning = true;
 
-            DiscardCycle _ = new DiscardCycle(where);
+            DiscardCycle _ = new DiscardCycle(where, cycles);
 
             //Updates file labels
             foreach (DiscardFile i in _.DiscardFiles)
             {
                 try
                 {
-                    i.DaysLeft--;
+                    i.DaysLeft -= cycles;
                 }
                 catch (Exception)
                 {

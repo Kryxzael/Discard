@@ -85,8 +85,16 @@ namespace Discard
                 return;
             }
 
+#if DEBUG
+            //To allow debug mode to override the once-per-day rule
+            Properties.Settings.Default.LastDiscardCycle = DateTime.Today.AddDays(-1);
+#endif
+
             //Runs a discard cycle;
-            DiscardCycle.RunNow(GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
+            DiscardCycle.RunNow(
+                where: GetDiscardDirectories().Select(i => new DirectoryInfo(i)),
+                cycles: (int)(DateTime.Today - Properties.Settings.Default.LastDiscardCycle).TotalDays
+            );
 
             //Writes the flag file
             WriteFlagFile();
