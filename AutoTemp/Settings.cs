@@ -23,6 +23,7 @@ namespace Discard
         private void OnOk(object sender, EventArgs e)
         {
             Program.SetDiscardDirectories(lstDiscards.Items.Cast<string>());
+            Properties.Settings.Default.DefaultDays = (int)numDefaultDays.Value;
             Properties.Settings.Default.Save();
             DialogResult = DialogResult.OK;
             Close();
