@@ -58,7 +58,7 @@ namespace Discard
              */
 
             //Fetches discard files
-            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)));
+            DiscardCycle cycle = DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)), 0);
 
             /*
              * Add tracked files
@@ -173,7 +173,7 @@ namespace Discard
             //Create the button for the file
             ToolStripMenuItem fileButton = new ToolStripMenuItem()
             {
-                Text = file.RealName + (file.Source is DirectoryInfo ? "\\" : ""),
+                Text = DiscardFile.GetRealName(file.Source.Name) + (file.Source is DirectoryInfo ? "\\" : ""),
                 Image = ThumbnailGenerator.WindowsThumbnailProvider.GetThumbnail(file.Source.FullName, 16, 16, ThumbnailGenerator.ThumbnailOptions.None),
                 Font = Control.DefaultFont
             };
@@ -252,6 +252,23 @@ namespace Discard
                     Process.Start(di.Parent.FullName);
                 }
             });
+            fileButton.DropDown.Items.Add("-");
+
+            if (file.HasExternalCounter)
+            {
+                fileButton.DropDown.Items.Add("Merge external tracker file", null, (s, e) =>
+                {
+                    file.MergeCounterFile();
+                });
+            }
+            else
+            {
+                fileButton.DropDown.Items.Add("Create external tracker file", null, (s, e) =>
+                {
+                    file.CreateCounterFile();
+                });
+            }
+            
 
             fileButton.DropDown.Items.Add("Archive...", null, (s, e) =>
             {
@@ -260,19 +277,19 @@ namespace Discard
                 //Shows the save file dialog
                 SaveFileDialog dia = new SaveFileDialog()
                 {
-                    Title = "Archive " + file.RealName
+                    Title = "Archive " + DiscardFile.GetRealName(file.Source.Name)
                 };
 
                 //Add extension filters
                 if (file.Source is FileInfo fi)
                 {
                     dia.Filter = $"Current extension (*{fi.Extension})|*{fi.Extension}|Any extension (*.*)|*";
-                    dia.FileName = file.RealName;
+                    dia.FileName = DiscardFile.GetRealName(file.Source.Name);
                 }
                 else if (file.Source is DirectoryInfo)
                 {
                     dia.Filter = "File Directory|*";
-                    dia.FileName = file.RealName;
+                    dia.FileName = DiscardFile.GetRealName(file.Source.Name);
                 }
 
                 //Shows the dialog
@@ -350,7 +367,7 @@ namespace Discard
         /// </summary>
         public void UpdateIcon()
         {
-            switch (DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)))
+            switch (DiscardCycle.DryRun(Program.GetDiscardDirectories().Select(i => new DirectoryInfo(i)), 0)
                 .DiscardFiles
                     .OrderBy(i => i.DaysLeft)
                     .FirstOrDefault()?
@@ -367,7 +384,11 @@ namespace Discard
                     break;
                 default:
                     _icon.Icon = Properties.Resources.DiscardOK;
+#if DEBUG
+                    _icon.Text = "Discard (Debug Mode)";
+#else
                     _icon.Text = "Discard";
+#endif
                     break;
             }
         }

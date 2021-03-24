@@ -37,7 +37,7 @@ namespace Discard
             int index = 0;
             foreach (DiscardFile i in Files)
             {
-                ListViewItem listItem = new ListViewItem(i.RealName)
+                ListViewItem listItem = new ListViewItem(DiscardFile.GetRealName(i.Source.Name))
                 {
                     Tag = i,
                     ImageIndex = index++,
@@ -180,19 +180,19 @@ namespace Discard
                 //Shows the save file dialog
                 SaveFileDialog dia = new SaveFileDialog()
                 {
-                    Title = "Archive " + discardFile.RealName
+                    Title = "Archive " + DiscardFile.GetRealName(discardFile.Source.Name)
                 };
 
                 //Add extension filters
                 if (discardFile.Source is FileInfo f)
                 {
                     dia.Filter = $"Current extension (*{f.Extension})|*{f.Extension}|Any extension (*.*)|*";
-                    dia.FileName = discardFile.RealName;
+                    dia.FileName = DiscardFile.GetRealName(discardFile.Source.Name);
                 }
                 else if (discardFile.Source is DirectoryInfo d)
                 {
                     dia.Filter = "File Directory|*";
-                    dia.FileName = discardFile.RealName;
+                    dia.FileName = DiscardFile.GetRealName(discardFile.Source.Name);
                 }
 
                 //Shows the dialog

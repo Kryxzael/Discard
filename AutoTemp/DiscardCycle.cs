@@ -19,34 +19,40 @@ namespace Discard
         public List<DiscardFile> DiscardFiles { get; }
 
         /// <summary>
+        /// Gets the amount of cycles (days since last cycle) this DiscardCycle will run
+        /// </summary>
+        public int Cycles { get; }
+
+        /// <summary>
         /// Is the application currently showing a dialog window
         /// </summary>
         private static bool IsRunning { get; set; }
 
-        private DiscardCycle(IEnumerable<DirectoryInfo> path)
+        private DiscardCycle(IEnumerable<DirectoryInfo> path, int cycles)
         {
             //don't ask how this works please
             DiscardFiles = path.Select(o => o.GetFileSystemInfos()
-                .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden))
+                .Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden) && i.Extension != ".discard")
                 .Select(i => new DiscardFile(i)))
                 .SelectMany(i => i)
             .ToList();
 
+            Cycles = cycles;
         }
 
         /// <summary>
         /// Creates a new discard cycle containing the information it would contain were it to run
         /// </summary>
         /// <param name="where"></param>
-        public static DiscardCycle DryRun(IEnumerable<DirectoryInfo> where)
+        public static DiscardCycle DryRun(IEnumerable<DirectoryInfo> where, int cycles)
         {
-            return new DiscardCycle(where);
+            return new DiscardCycle(where, cycles);
         }
 
         /// <summary>
         /// Runs a discard cycle now on the given directory
         /// </summary>
-        public static bool RunNow(IEnumerable<DirectoryInfo> where)
+        public static bool RunNow(IEnumerable<DirectoryInfo> where, int cycles)
         {
             //Do not show dialog if the application is already running
             if (IsRunning)
@@ -57,14 +63,14 @@ namespace Discard
 
             IsRunning = true;
 
-            DiscardCycle _ = new DiscardCycle(where);
+            DiscardCycle _ = new DiscardCycle(where, cycles);
 
             //Updates file labels
             foreach (DiscardFile i in _.DiscardFiles)
             {
                 try
                 {
-                    i.DaysLeft--;
+                    i.DaysLeft -= cycles;
                 }
                 catch (Exception)
                 {
@@ -74,6 +80,7 @@ namespace Discard
 
             //Shows the dialog for the files that are to be deleted
             IEnumerable<DiscardFile> filesToPrompt = _.DiscardFiles.Where(i => i.Expired && !i.NoWarning);
+            List<DiscardFile> filesForDeletion = _.DiscardFiles.Where(i => i.NoWarning && i.Expired).ToList();
 
             if (filesToPrompt.Any())
             {
@@ -86,18 +93,7 @@ namespace Discard
                     return false;
                 }
 
-                //Delete files
-                foreach (DiscardFile i in dia.GetFilesForDeletion().Union(_.DiscardFiles.Where(i => i.Expired && i.NoWarning)))
-                {
-                    try
-                    {
-                        i.Delete();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("The file/folder " + i.RealName + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                filesForDeletion.AddRange(dia.GetFilesForDeletion());
 
                 //Postpone files
                 foreach (DiscardFile i in dia.GetFilesForPostponement())
@@ -109,10 +105,23 @@ namespace Discard
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("The file/folder " + i.RealName + " could not be updated. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("The file/folder " + DiscardFile.GetRealName(i.Source.Name) + " could not be updated. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
 
+            }
+
+            //Delete files
+            foreach (DiscardFile i in filesForDeletion)
+            {
+                try
+                {
+                    i.Delete();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("The file/folder " + DiscardFile.GetRealName(i.Source.Name) + " could not be deleted. It might be in use\r\n" + ex.Message, "Discard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
 
             IsRunning = false;

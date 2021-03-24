@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Discard
 {
@@ -19,22 +20,37 @@ namespace Discard
         public FileSystemInfo Source { get; }
 
         /// <summary>
-        /// Gets the name of the discard file without the preceding numbering
+        /// Gets the file that contains this discard file's counter
         /// </summary>
-        public string RealName
+        public FileSystemInfo CounterFile
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string name, out bool _);
-                return name;
+                if (Source.Extension == ".discard")
+                {
+                    return Source;
+                }
+
+                foreach (DiscardFile i in new DirectoryInfo(Path.GetDirectoryName(Source.FullName)).GetFiles().Select(i => new DiscardFile(i)))
+                {
+                    if (GetRealName(i.Source.Name).ToLower() == Source.Name.ToLower() + ".discard")
+                    {
+                        return i.Source;
+                    }                    
+                }
+
+                return Source;
             }
         }
 
+        /// <summary>
+        /// Has this file not been run through the system yet?
+        /// </summary>
         public bool Untracked
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool _, out string _, out bool untracked);
+                DeconstructFileName(CounterFile.Name, out int _, out bool _, out string _, out bool untracked);
                 return untracked;
             }
         }
@@ -46,40 +62,52 @@ namespace Discard
         {
             get
             {
-                DeconstructFileName(Source.Name, out int days, out bool _, out string _, out bool _);
+                DeconstructFileName(CounterFile.Name, out int days, out bool _, out string _, out bool _);
                 return days;
             }
             set
             {
-                if (Source is DirectoryInfo d)
+                if (CounterFile is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(value, NoWarning, GetRealName(CounterFile.Name)));
                 }
-                else if (Source is FileInfo f)
+                else if (CounterFile is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, RealName));
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(value, NoWarning, GetRealName(CounterFile.Name)));
                 }
             }
         }
 
+        /// <summary>
+        /// Is this file a no-warn file
+        /// </summary>
         public bool NoWarning
         {
             get
             {
-                DeconstructFileName(Source.Name, out int _, out bool nowarn, out string _, out bool _);
+                DeconstructFileName(CounterFile.Name, out int _, out bool nowarn, out string _, out bool _);
                 return nowarn;
             }
             set
             {
-                if (Source is DirectoryInfo d)
+                if (CounterFile is DirectoryInfo d)
                 {
-                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
+                    d.MoveTo(d.Parent.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(d.Name)));
                 }
-                else if (Source is FileInfo f)
+                else if (CounterFile is FileInfo f)
                 {
-                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, RealName));
+                    f.MoveTo(f.Directory.FullName + "\\" + ConstructFileName(DaysLeft, value, GetRealName(f.Name)));
                 }
             }
+        }
+
+        /// <summary>
+        /// Does this file use an external counter system?
+        /// </summary>
+        public bool HasExternalCounter
+        {
+            get => CounterFile != Source;
+            set => throw new NotImplementedException();
         }
 
         /// <summary>
@@ -175,6 +203,62 @@ namespace Discard
             }
         }
 
+        /// <summary>
+        /// Creates a counter file of this discard file and transfers all the information from this file to that counter
+        /// </summary>
+        public void CreateCounterFile()
+        {
+            if (HasExternalCounter)
+            {
+                return;
+            }
+
+            try
+            {
+                File.Create(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, Source.Name) + ".discard")).Close();
+
+                (Source as FileInfo)?.MoveTo(
+                        Path.Combine(Path.GetDirectoryName(Source.FullName), GetRealName(Source.Name))
+                 );
+
+                (Source as DirectoryInfo)?.MoveTo(
+                    Path.Combine((Source as DirectoryInfo).Parent.FullName, GetRealName(Source.Name))
+                );
+            }
+            catch (Exception ex)
+            {
+                //This is so stupid.
+                //So apparently, Windows throws an IOException if the target and dest. names are identical
+                //This also seems to ONLY happen with folders. Wat
+                if (ex.HResult == -2146232800) 
+                    return;
+
+                MessageBox.Show("Unable to fully create counter file. This can mean that:\n\n* The counter file was created but the counter of the original file could not be removed\n* The counter file could not be created\n\nYou need to manually fix this", "Creation error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        public void MergeCounterFile()
+        {
+            if (!HasExternalCounter)
+            {
+                return;
+            }
+
+            try
+            {
+                FileInfo oldCounterFile = CounterFile as FileInfo;
+                (Source as FileInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, GetRealName(Source.Name))));
+                (Source as DirectoryInfo)?.MoveTo(Path.Combine(Path.GetDirectoryName(Source.FullName), ConstructFileName(DaysLeft, NoWarning, GetRealName(Source.Name))));
+
+                
+                oldCounterFile.Delete();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Unable to fully merge counter file. This can mean that:\n\n* The counter file still remains even though it's not in use\n* No action could take place\n\nYou need to manualy fix this", "Merging error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         public static void DeconstructFileName(string input, out int days, out bool noWarn, out string name, out bool untracked)
         {
             string prefix = input.Split(' ').First();
@@ -242,6 +326,15 @@ namespace Discard
                 days.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")),
                 name
             );
+        }
+
+        /// <summary>
+        /// Gets the name portion of a discard file
+        /// </summary>
+        public static string GetRealName(string fileName)
+        {
+            DeconstructFileName(fileName, out int _, out bool _, out string name, out bool _);
+            return name;
         }
     }
 }
