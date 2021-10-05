@@ -311,7 +311,7 @@ namespace Discard
 
             fileButton.DropDown.Items.Add("Delete now...", null, (s, e) =>
             {
-                if (MessageBox.Show("Are you sure you want to permanently delete this file?", "Delete now", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                if (MessageBox.Show("Are you sure you want to permanently delete '" + file.Source.Name + "'?", "Delete now", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
                 {
                     file.Delete();
                 }
