@@ -56,6 +56,13 @@ namespace Discard
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            //Not sure why this is necessary, but it is. The program crashes in an external-only call-stack without it
+            if (Properties.Settings.Default.DefaultDaysPerExtension == null)
+            {
+                Properties.Settings.Default.DefaultDaysPerExtension = new System.Collections.Specialized.NameValueCollection();
+            }
+                
+
             Microsoft.Win32.SystemEvents.SessionSwitch += (s, e) =>
             {
                 if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionUnlock)
@@ -81,7 +88,7 @@ namespace Discard
         {
             if (HasBeenRunToday())
             {
-                //App has allready been run and will not be run again
+                //App has already been run and will not be run again
                 return;
             }
 

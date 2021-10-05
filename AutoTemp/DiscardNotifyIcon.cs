@@ -185,7 +185,7 @@ namespace Discard
              */
 
             //Based on extended timers
-            if (file.DaysLeft > Properties.Settings.Default.DefaultDays)
+            if (file.DaysLeft > DiscardFile.GetDefaultDays(file))
             {
                 fileButton.ForeColor = Color.FromArgb(75, 75, 75);
                 fileButton.ToolTipText = "This " + (file.Source is FileInfo ? "file" : "directory") + " has an extended timer";

@@ -38,7 +38,11 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
+            this.dataDefaultDays = new System.Windows.Forms.DataGridView();
+            this.clmExt = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clmDefaultDays = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.numDefaultDays)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataDefaultDays)).BeginInit();
             this.SuspendLayout();
             // 
             // numDefaultDays
@@ -106,7 +110,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(138, 215);
+            this.btnCancel.Location = new System.Drawing.Point(138, 336);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 7;
@@ -117,7 +121,7 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOk.Location = new System.Drawing.Point(57, 215);
+            this.btnOk.Location = new System.Drawing.Point(57, 336);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 8;
@@ -125,13 +129,41 @@
             this.btnOk.UseVisualStyleBackColor = true;
             this.btnOk.Click += new System.EventHandler(this.OnOk);
             // 
+            // dataGridView1
+            // 
+            this.dataDefaultDays.BackgroundColor = System.Drawing.SystemColors.Window;
+            this.dataDefaultDays.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataDefaultDays.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.clmExt,
+            this.clmDefaultDays});
+            this.dataDefaultDays.Location = new System.Drawing.Point(12, 215);
+            this.dataDefaultDays.Name = "dataGridView1";
+            this.dataDefaultDays.Size = new System.Drawing.Size(201, 115);
+            this.dataDefaultDays.TabIndex = 9;
+            this.dataDefaultDays.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.OnDefaultDaysCellValidation);
+            // 
+            // clmExt
+            // 
+            this.clmExt.HeaderText = "Extension";
+            this.clmExt.Name = "clmExt";
+            this.clmExt.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.clmExt.Width = 70;
+            // 
+            // clmDefaultDays
+            // 
+            this.clmDefaultDays.FillWeight = 25F;
+            this.clmDefaultDays.HeaderText = "Days";
+            this.clmDefaultDays.Name = "clmDefaultDays";
+            this.clmDefaultDays.Width = 50;
+            // 
             // Settings
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(225, 250);
+            this.ClientSize = new System.Drawing.Size(225, 371);
+            this.Controls.Add(this.dataDefaultDays);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnAdd);
@@ -148,6 +180,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Settings";
             ((System.ComponentModel.ISupportInitialize)(this.numDefaultDays)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataDefaultDays)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -164,5 +197,8 @@
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOk;
+        private System.Windows.Forms.DataGridView dataDefaultDays;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmExt;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmDefaultDays;
     }
 }

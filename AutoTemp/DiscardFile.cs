@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -313,7 +314,7 @@ namespace Discard
             else
             {
                 name = input;
-                days = Properties.Settings.Default.DefaultDays;
+                days = GetDefaultDays(input);
                 noWarn = false;
                 untracked = true;
             }
@@ -335,6 +336,36 @@ namespace Discard
         {
             DeconstructFileName(fileName, out int _, out bool _, out string name, out bool _);
             return name;
+        }
+
+        /// <summary>
+        /// Gets the amount of discard days the provided file would have by default
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static int GetDefaultDays(DiscardFile file)
+        {
+            return GetDefaultDays(file.Source.FullName);
+        }
+
+        /// <summary>
+        /// Gets the amount of discard days the provided file would have by default
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static int GetDefaultDays(string path)
+        {
+            string ext = Path.GetExtension(path).ToUpper();
+
+            foreach (string i in Properties.Settings.Default.DefaultDaysPerExtension.AllKeys)
+            {
+                if (i.ToUpper() == ext && int.TryParse(Properties.Settings.Default.DefaultDaysPerExtension[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int days))
+                {
+                    return days;
+                }
+            }
+
+            return Properties.Settings.Default.DefaultDays;
         }
     }
 }
