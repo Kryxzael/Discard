@@ -1,0 +1,3 @@
+[submodule "UserConsoleLib"]
+	path = UserConsoleLib
+	url = https://www.github.com/Kryxzael/UserConsoleLib.git
