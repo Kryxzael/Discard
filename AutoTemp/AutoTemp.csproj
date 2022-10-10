@@ -53,6 +53,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\List.cs" />
+    <Compile Include="Commands\Select.cs" />
+    <Compile Include="Commands\SetDays.cs" />
+    <Compile Include="Commands\Touch.cs" />
     <Compile Include="CreateFileDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -132,6 +136,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\DiscardError.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UserConsoleLib\UserConsoleLib\UserConsoleLib.csproj">
+      <Project>{c5daeb99-86c4-45a5-93b4-d848666bf80a}</Project>
+      <Name>UserConsoleLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -56,6 +56,11 @@ namespace Discard
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            UserConsoleLib.Command.Register<Commands.List>();
+            UserConsoleLib.Command.Register<Commands.Select>();
+            UserConsoleLib.Command.Register<Commands.SetDays>();
+            UserConsoleLib.Command.Register<Commands.Touch>();
+
             //Not sure why this is necessary, but it is. The program crashes in an external-only call-stack without it
             if (Properties.Settings.Default.DefaultDaysPerExtension == null)
             {

@@ -145,6 +145,7 @@ namespace Discard
              */
             _context.Items.Add("-");
             _context.Items.Add("&Settings...", null, (s, e) => new Settings().ShowDialog());
+            _context.Items.Add("&Console ...", null, (s, e) => new UserConsoleLib.UserConsole().ShowDialog());
             _context.Items.Add("&Create...", null, (s, e) => new CreateFileDialog().ShowDialog()).Enabled = Program.GetDiscardDirectories().Any();
 
             //Open button
