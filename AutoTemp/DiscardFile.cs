@@ -134,12 +134,12 @@ namespace Discard
             if (Source is FileInfo f)
             {
                 File.SetAttributes(f.FullName, File.GetAttributes(f.FullName) & ~FileAttributes.ReadOnly);
-                f.Delete();
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(f.FullName, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
             }
             else if (Source is DirectoryInfo d)
             {
                 recursiveSetAttr(d);
-                d.Delete(true);
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(d.FullName, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
             }
 
 

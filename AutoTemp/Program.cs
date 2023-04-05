@@ -28,8 +28,8 @@ namespace Discard
         public static IEnumerable<string> GetDiscardDirectories()
         {
 #if DEBUG
-            //yield return "C:\\users\\kryxzael\\desktop\\discard2";
-            return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
+            yield return "C:\\users\\kryxzael\\desktop\\discard2";
+            //return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
 #else
             return Properties.Settings.Default.DiscardDirs.Split('>').Where(Directory.Exists);
 #endif
